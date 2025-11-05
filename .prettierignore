@@ -1,0 +1,7 @@
+.next
+node_modules
+*.min.css
+*.css
+dist
+build
+

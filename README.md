@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Avalanche Pong Game
 
-## Getting Started
+A web-based PONG game on the **Avalanche Fuji Testnet** with blockchain integration for recording game scores. Built with Next.js, React, TypeScript, Ethers.js v6, and Solidity.
 
-First, run the development server:
+## Architecture
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Smart Contract** (Solidity): Single source of truth, emits events for score records
+- **Fastify Serverless Function** (TypeScript): Transaction submitter with server-side signing
+- **React Frontend** (TypeScript): Handles all data reading by calling Avalanche RPC directly
+
+## Prerequisites
+
+- Node.js 20.9.0+ (required for Next.js 16)
+- MetaMask browser extension
+- Avalanche Fuji Testnet AVAX (get from faucet)
+
+## Project Structure
+
+```
+avalanche-pong/
+├── api/
+│   └── submit-score.ts          # Fastify serverless function for transaction submission
+├── app/
+│   ├── page.tsx                 # Main page layout
+│   └── globals.css              # Global styles
+├── components/
+│   ├── Header.tsx               # Header with network info
+│   ├── PlayablePongGame.tsx     # Pong game component
+│   ├── Transactions.tsx        # Transaction history table
+│   └── ShaderBackgroundWrapper.tsx
+├── contracts/
+│   └── GameScore.sol            # Solidity smart contract
+├── scripts/
+│   └── deploy.ts                # Contract deployment script
+├── utils/
+│   ├── blockchain.ts            # Blockchain utility functions
+│   └── ShaderBackground.ts      # WebGL shader background
+└── assets/
+    └── svgs.ts                  # SVG path data
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Playable Pong Game**: 1v1 and 1vAI modes with score tracking
+- **Blockchain Integration**: Game scores recorded on Avalanche Fuji Testnet
+- **Transaction History**: View last 10 game results from the blockchain
+- **Live Network Stats**: Real-time block number and network status
+- **Responsive Design**: Mobile-first layout that adapts to all screen sizes
+- **Animated Background**: WebGL shader effects
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Game Controls
 
-## Learn More
+- **Left Paddle**: `W` (up) / `S` (down)
+- **Right Paddle**: `O` (up) / `K` (down) - only in 1v1 mode
+- **AI Mode**: Right paddle moves automatically
 
-To learn more about Next.js, take a look at the following resources:
+## Smart Contract
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The `GameScore.sol` contract emits a `ScoreRecorded` event with:
+- `submitterAddress` (indexed): Address that submitted the score
+- `winner`: Winner's username
+- `loser`: Loser's username
+- `score`: Final score (e.g., "3-1")
+- `duration`: Game duration in seconds
+- `timestamp`: Block timestamp when recorded
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
