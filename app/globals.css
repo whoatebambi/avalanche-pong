@@ -38,6 +38,25 @@ body {
 	overflow-x: hidden;
 }
 
+/* Safe area support for all browsers and devices */
+/* Base padding for all browsers */
+.safe-area-padding {
+	padding-left: 1rem;
+	padding-right: 1rem;
+	padding-top: 1.5rem;
+	padding-bottom: 1.5rem;
+}
+
+/* Enhanced padding with safe-area-inset support (iOS Safari, Android Chrome, etc.) */
+@supports (padding: max(0px)) {
+	.safe-area-padding {
+		padding-left: max(1rem, env(safe-area-inset-left, 1rem));
+		padding-right: max(1rem, env(safe-area-inset-right, 1rem));
+		padding-top: max(1.5rem, env(safe-area-inset-top, 1.5rem));
+		padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1.5rem));
+	}
+}
+
 @keyframes slideUp {
 	0% {
 		transform: translateY(0);

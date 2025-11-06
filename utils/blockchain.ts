@@ -15,17 +15,11 @@ const CONTRACT_ABI = [
   'event ScoreRecorded(address indexed submitterAddress, string winner, string loser, string score, uint256 duration, uint256 timestamp)',
 ];
 
-/**
- * Get the Avalanche Subnets Explorer URL for a transaction hash
- */
 export function getAvalancheExplorerUrl(hash: string): string {
   // Using official Avalanche Subnets Explorer for Fuji testnet
   return `https://subnets-test.avax.network/c-chain/tx/${hash}`;
 }
 
-/**
- * Fetch the latest block number from Avalanche Fuji
- */
 export async function getLatestBlock(): Promise<number> {
   try {
     const rpcUrl = process.env.NEXT_PUBLIC_FUJI_RPC_URL || 'https://api.avax-test.network/ext/bc/C/rpc';
@@ -38,9 +32,7 @@ export async function getLatestBlock(): Promise<number> {
   }
 }
 
-/**
- * Fetch the last 10 ScoreRecorded events from the contract
- */
+// Fetch the last 10 ScoreRecorded events from the contract
 export async function fetchScoreHistory(): Promise<ScoreRecord[]> {
   try {
     const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
@@ -57,9 +49,7 @@ export async function fetchScoreHistory(): Promise<ScoreRecord[]> {
     // Get the latest block number
     const latestBlock = await provider.getBlockNumber();
     
-    // Query events from the last 2000 blocks (RPC limit is 2048 blocks)
-    // At ~1.6 seconds per block, this covers approximately 53 minutes of transactions
-    // This is optimal for serverless functions: fast, single query, within limits
+    // Query events from the last 2000 blocks (RPC limit is 2048 blocks), approx 53 minutes of transactions
     const fromBlock = Math.max(0, latestBlock - 2000);
 
     // Query ScoreRecorded events
@@ -93,9 +83,6 @@ export async function fetchScoreHistory(): Promise<ScoreRecord[]> {
   }
 }
 
-/**
- * Submit a score to the blockchain via the API endpoint
- */
 export async function submitScore(
   winner: string,
   loser: string,
@@ -103,8 +90,7 @@ export async function submitScore(
   duration: number
 ): Promise<{ success: boolean; txHash?: string; error?: string }> {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-    const endpoint = apiUrl ? `${apiUrl}/api/submit-score` : '/api/submit-score';
+    const endpoint = '/api/submit-score';
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {

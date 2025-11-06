@@ -8,35 +8,29 @@ A web-based PONG game on the **Avalanche Fuji Testnet** with blockchain integrat
 - **Fastify Serverless Function** (TypeScript): Transaction submitter with server-side signing
 - **React Frontend** (TypeScript): Handles all data reading by calling Avalanche RPC directly
 
-## Prerequisites
-
-- Node.js 20.9.0+ (required for Next.js 16)
-- MetaMask browser extension
-- Avalanche Fuji Testnet AVAX (get from faucet)
-
 ## Project Structure
 
 ```
 avalanche-pong/
 ├── api/
-│   └── submit-score.ts          # Fastify serverless function for transaction submission
+│   └── submit-score.ts           # Fastify serverless function for transaction submission
 ├── app/
-│   ├── page.tsx                 # Main page layout
-│   └── globals.css              # Global styles
+│   ├── page.tsx                  # Main page layout
+│   └── globals.css               # Global styles
+├── assets/
+│   └── svgs.ts                   # SVG path data
 ├── components/
-│   ├── Header.tsx               # Header with network info
-│   ├── PlayablePongGame.tsx     # Pong game component
-│   ├── Transactions.tsx        # Transaction history table
-│   └── ShaderBackgroundWrapper.tsx
+│   ├── Header.tsx                # Header with network info and chain status
+│   ├── PlayablePongGame.tsx      # Pong game component
+│   ├── Transactions.tsx          # Transaction history table
+│   └── ShaderBackgroundWrapper.tsx # WebGL shader background wrapper
 ├── contracts/
-│   └── GameScore.sol            # Solidity smart contract
+│   └── GameScore.sol             # Solidity smart contract
 ├── scripts/
-│   └── deploy.ts                # Contract deployment script
-├── utils/
-│   ├── blockchain.ts            # Blockchain utility functions
-│   └── ShaderBackground.ts      # WebGL shader background
-└── assets/
-    └── svgs.ts                  # SVG path data
+│   └── deploy.ts                 # Contract deployment script
+└── utils/
+    ├── blockchain.ts             # Blockchain utility functions
+    └── ShaderBackground.ts       # WebGL shader background logic
 ```
 
 ## Features

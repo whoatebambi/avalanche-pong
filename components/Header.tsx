@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { getLatestBlock } from '@/utils/blockchain';
 import svgPaths from '@/assets/svgs';
+import HamburgerMenu from './HamburgerMenu';
+import { type DebugState } from './DebugHelper';
 
 function IconPong() {
 	return (
@@ -19,18 +21,6 @@ function IconPong() {
 	);
 }
 
-function IconHamburger() {
-	return (
-		<div className="relative shrink-0 size-[40px] flex items-center justify-center">
-			<svg className="block size-[20px]" fill="none" viewBox="0 0 21 16">
-				<path
-					d="M21 15.75H0V14H21V15.75ZM21 8.75H0V7H21V8.75ZM21 1.75H0V0H21V1.75Z"
-					fill="currentColor"
-				/>
-			</svg>
-		</div>
-	);
-}
 
 function IconAvax() {
 	return (
@@ -76,12 +66,32 @@ function StatusIndicator({ status }: { status: 'online' | 'offline' | 'unknown' 
 	);
 }
 
-function SectionMobileHeader() {
+interface SectionMobileHeaderProps {
+	onDebugStateChange?: (state: DebugState) => void;
+	onDebugModeChange?: (isEnabled: boolean) => void;
+	debugState?: DebugState;
+	githubUrl?: string;
+	portfolioUrl?: string;
+}
+
+function SectionMobileHeader({ 
+	onDebugStateChange,
+	onDebugModeChange,
+	debugState,
+	githubUrl,
+	portfolioUrl 
+}: SectionMobileHeaderProps) {
 	return (
-		<div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
+			<div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
 			<IconPong />
 			<div className="md:hidden">
-				<IconHamburger />
+				<HamburgerMenu
+					onDebugStateChange={onDebugStateChange}
+					onDebugModeChange={onDebugModeChange}
+					debugState={debugState}
+					githubUrl={githubUrl}
+					portfolioUrl={portfolioUrl}
+				/>
 			</div>
 		</div>
 	);
@@ -232,7 +242,21 @@ function Section({
 	);
 }
 
-export default function Header() {
+interface HeaderProps {
+	onDebugStateChange?: (state: DebugState) => void;
+	onDebugModeChange?: (isEnabled: boolean) => void;
+	debugState?: DebugState;
+	githubUrl?: string;
+	portfolioUrl?: string;
+}
+
+export default function Header({ 
+	onDebugStateChange,
+	onDebugModeChange,
+	debugState,
+	githubUrl,
+	portfolioUrl 
+}: HeaderProps) {
 	const [latestBlock, setLatestBlock] = useState<string>('69,650,428');
 	const [networkStatus, setNetworkStatus] = useState<'online' | 'offline' | 'unknown'>('unknown');
 	const previousBlockRef = useRef<string>('69,650,428');
@@ -269,13 +293,19 @@ export default function Header() {
 
 	return (
 		<div
-			className="backdrop-blur-[50px] backdrop-filter bg-[rgba(81,81,81,0.24)] rounded-[40px] w-full max-w-[520px] md:max-w-[1080px] mx-auto"
+			className="backdrop-blur-[50px] backdrop-filter bg-[rgba(81,81,81,0.24)] rounded-[40px] w-full max-w-[520px] md:max-w-[1080px] mx-auto overflow-visible"
 		>
 			<div className="absolute border-[0.5px] border-[rgba(226,226,226,0.2)] border-solid inset-0 pointer-events-none rounded-[40px]" />
 
 			{/* Mobile/Stacked Layout */}
-			<div className="flex flex-col gap-4 items-start px-8 py-6 md:hidden relative w-full">
-				<SectionMobileHeader />
+			<div className="flex flex-col gap-4 items-start px-8 py-6 md:hidden relative w-full overflow-visible">
+				<SectionMobileHeader 
+					onDebugStateChange={onDebugStateChange}
+					onDebugModeChange={onDebugModeChange}
+					debugState={debugState}
+					githubUrl={githubUrl}
+					portfolioUrl={portfolioUrl}
+				/>
 				<Section labelText="Network" valueText="Avalanche" valueIcon="avalanche" />
 				<Section 
 					labelText="Testnet" 
@@ -286,7 +316,7 @@ export default function Header() {
 			</div>
 
 			{/* Desktop Layout */}
-			<div className="hidden md:flex flex-row items-center w-full relative min-h-[88px]">
+			<div className="hidden md:flex flex-row items-center w-full relative min-h-[88px] overflow-visible">
 				<div className="absolute left-8 flex gap-8 items-center">
 					<div className="content-stretch flex gap-6 items-center relative shrink-0">
 						<IconPong />
@@ -301,8 +331,14 @@ export default function Header() {
 						<Section labelText="Latest block" valueText={latestBlock} isLive={true} />
 					</div>
 				</div>
-				<div className="absolute right-8">
-					<IconHamburger />
+				<div className="absolute right-8 z-50">
+					<HamburgerMenu
+						onDebugStateChange={onDebugStateChange}
+						onDebugModeChange={onDebugModeChange}
+						debugState={debugState}
+						githubUrl={githubUrl}
+						portfolioUrl={portfolioUrl}
+					/>
 				</div>
 			</div>
 		</div>

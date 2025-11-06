@@ -89,8 +89,8 @@ function TechBlockCard({ tech }: { tech: TechBlock }) {
 
 export default function TechStack() {
 	return (
-		<div className="w-full max-w-[520px] md:max-w-[1080px] mx-auto">
-			<div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+		<div className="w-full max-w-[520px] md:max-w-[1080px] mx-auto px-4 md:px-0">
+			<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 				{techStack.map((tech, index) => (
 					<TechBlockCard key={index} tech={tech} />
 				))}

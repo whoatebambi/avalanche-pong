@@ -1,9 +1,10 @@
 'use client';
 
 import { ExternalLink } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { fetchScoreHistory, getAvalancheExplorerUrl, type ScoreRecord } from '@/utils/blockchain';
 import svgPaths from '@/assets/svgs';
+import { type DebugState } from './DebugHelper';
 
 function AvalancheLogo() {
 	return (
@@ -38,13 +39,10 @@ function AvaxBadge() {
 }
 
 interface TransactionsHeaderProps {
-	showDebugButtons?: boolean;
-	debugState?: 'loading' | 'error' | 'empty' | 'data';
-	onDebugStateChange?: (state: 'loading' | 'error' | 'empty' | 'data') => void;
 	countdown?: number;
 }
 
-function TransactionsHeader({ showDebugButtons = false, debugState, onDebugStateChange, countdown }: TransactionsHeaderProps) {
+function TransactionsHeader({ countdown }: TransactionsHeaderProps) {
 	return (
 		<div className="flex flex-col gap-2">
 			<div className="flex items-center justify-between w-full">
@@ -65,53 +63,6 @@ function TransactionsHeader({ showDebugButtons = false, debugState, onDebugState
 					</p>
 				</div>
 			</div>
-			{showDebugButtons && debugState && onDebugStateChange && (
-				<div className="flex gap-2 items-center">
-					<span className="font-mono text-[11px] opacity-40 uppercase">
-						DEBUG:
-					</span>
-					<button
-						onClick={() => onDebugStateChange('loading')}
-						className={`px-2 py-1 rounded text-[11px] font-mono transition-colors ${
-							debugState === 'loading'
-								? 'bg-[rgba(232,65,66,0.3)] border border-[rgba(232,65,66,0.5)]'
-								: 'bg-[rgba(255,255,255,0.1)] opacity-60 hover:bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.2)]'
-						}`}
-					>
-						Loading
-					</button>
-					<button
-						onClick={() => onDebugStateChange('error')}
-						className={`px-2 py-1 rounded text-[11px] font-mono transition-colors ${
-							debugState === 'error'
-								? 'bg-[rgba(232,65,66,0.3)] border border-[rgba(232,65,66,0.5)]'
-								: 'bg-[rgba(255,255,255,0.1)] opacity-60 hover:bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.2)]'
-						}`}
-					>
-						Error
-					</button>
-					<button
-						onClick={() => onDebugStateChange('empty')}
-						className={`px-2 py-1 rounded text-[11px] font-mono transition-colors ${
-							debugState === 'empty'
-								? 'bg-[rgba(232,65,66,0.3)] border border-[rgba(232,65,66,0.5)]'
-								: 'bg-[rgba(255,255,255,0.1)] opacity-60 hover:bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.2)]'
-						}`}
-					>
-						Empty
-					</button>
-					<button
-						onClick={() => onDebugStateChange('data')}
-						className={`px-2 py-1 rounded text-[11px] font-mono transition-colors ${
-							debugState === 'data'
-								? 'bg-[rgba(232,65,66,0.3)] border border-[rgba(232,65,66,0.5)]'
-								: 'bg-[rgba(255,255,255,0.1)] opacity-60 hover:bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.2)]'
-						}`}
-					>
-						Data
-					</button>
-				</div>
-			)}
 		</div>
 	);
 }
@@ -147,6 +98,49 @@ function scoreRecordToTransaction(record: ScoreRecord): Transaction {
 		hash: truncateHash(record.txHash),
 		fullHash: record.txHash,
 	};
+}
+
+// Generate fake transaction data for debugging
+function generateFakeTransactions(count: number = 10): Transaction[] {
+	const fakeNames = [
+		'Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Henry',
+		'Iris', 'Jack', 'Kate', 'Liam', 'Mia', 'Noah', 'Olivia', 'Paul',
+		'Quinn', 'Ruby', 'Sam', 'Tina', 'Uma', 'Victor', 'Wendy', 'Xavier'
+	];
+	
+	const fakeTransactions: Transaction[] = [];
+	
+	for (let i = 0; i < count; i++) {
+		// Randomly select two different names
+		const namePool = [...fakeNames];
+		const winnerIndex = Math.floor(Math.random() * namePool.length);
+		const winner = namePool.splice(winnerIndex, 1)[0];
+		const loser = namePool[Math.floor(Math.random() * namePool.length)];
+		
+		// Generate realistic scores (e.g., "21-15", "21-19", etc.)
+		const winnerScore = 21;
+		const loserScore = Math.floor(Math.random() * 19) + 1; // 1-19
+		const score = `${winnerScore}-${loserScore}`;
+		
+		// Generate realistic duration (30 seconds to 5 minutes)
+		const durationSeconds = Math.floor(Math.random() * 270) + 30; // 30-300 seconds
+		
+		// Generate fake transaction hash
+		const fakeHash = '0x' + Array.from({ length: 64 }, () => 
+			Math.floor(Math.random() * 16).toString(16)
+		).join('');
+		
+		fakeTransactions.push({
+			winner,
+			loser,
+			score,
+			duration: formatDuration(durationSeconds),
+			hash: truncateHash(fakeHash),
+			fullHash: fakeHash,
+		});
+	}
+	
+	return fakeTransactions;
 }
 
 function formatHashForTooltip(fullHash: string): string[] {
@@ -297,7 +291,7 @@ const COLUMN_LAYOUT = [
 	{ label: 'Winner', minWidth: 'min-w-24', className: 'overflow-hidden' },
 	{ label: 'Score', minWidth: 'min-w-10', className: '' },
 	{ label: 'Duration', minWidth: 'min-w-20', className: '' },
-	{ label: 'Hash', minWidth: 'min-w-24', className: '' },
+	{ label: 'Hash', minWidth: 'min-w-24', className: 'overflow-visible' },
 ] as const;
 
 interface TableCellProps {
@@ -351,12 +345,7 @@ function TableCell({
 	);
 }
 
-interface TableHeaderProps {
-	onDebugToggle?: () => void;
-	showDebug?: boolean;
-}
-
-function TableHeader({ onDebugToggle, showDebug }: TableHeaderProps) {
+function TableHeader() {
 	return (
 		<div className="flex items-center gap-1 py-[4px] overflow-visible">
 			{COLUMN_LAYOUT.map((column) => (
@@ -373,35 +362,19 @@ function TableHeader({ onDebugToggle, showDebug }: TableHeaderProps) {
 					{column.label}
 				</TableCell>
 			))}
-			<TableCell width="w-20" rawContent className="h-6 overflow-visible relative z-10">
-				{onDebugToggle && (
-					<button
-						type="button"
-						onClick={(e) => {
-							e.preventDefault();
-							e.stopPropagation();
-							onDebugToggle();
-						}}
-						className={`relative z-10 px-2 py-1 rounded text-[11px] font-mono transition-colors cursor-pointer ${
-							showDebug
-								? 'bg-[rgba(232,65,66,0.3)] border border-[rgba(232,65,66,0.5)]'
-								: 'bg-[rgba(255,255,255,0.1)] opacity-60 hover:bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.2)]'
-						}`}
-						title={showDebug ? 'Hide Debug' : 'Show Debug'}
-					>
-						Debug
-					</button>
-				)}
+			<TableCell width="w-20" className="h-6" rawContent>
+				{/* Empty cell to align with external link icon column */}
 			</TableCell>
 		</div>
 	);
 }
 
-export default function Transactions() {
-	// DEBUG: Toggle between different states for testing UI
-	const [debugState, setDebugState] = useState<'loading' | 'error' | 'empty' | 'data'>('data');
-	const [showDebug, setShowDebug] = useState(false);
+interface TransactionsProps {
+	debugState?: DebugState;
+	isDebugMode?: boolean;
+}
 
+export default function Transactions({ debugState = 'data', isDebugMode = false }: TransactionsProps) {
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -411,6 +384,13 @@ export default function Transactions() {
 
 	// Fetch transactions from blockchain
 	useEffect(() => {
+		// Skip fetching if in debug mode with data state (will use fake data)
+		if (isDebugMode && debugState === 'data') {
+			setLoading(false);
+			setError(null);
+			return;
+		}
+
 		async function fetchTransactions() {
 			try {
 				setLoading(true);
@@ -434,7 +414,7 @@ export default function Transactions() {
 		// Poll for new transactions every 30 seconds
 		const interval = setInterval(fetchTransactions, POLL_INTERVAL);
 		return () => clearInterval(interval);
-	}, []);
+	}, [isDebugMode, debugState]);
 
 	// Countdown timer
 	useEffect(() => {
@@ -451,19 +431,27 @@ export default function Transactions() {
 	}, []);
 
 	// DEBUG: Use debug state to test different UI states
-	const displayLoading = debugState === 'loading' || loading;
-	const displayError = debugState === 'error' ? 'Failed to connect to Avalanche API' : (debugState === 'data' ? error : null);
-	const displayTransactions = debugState === 'empty' ? [] : (debugState === 'data' ? transactions : []);
+	const displayLoading = debugState === 'loading' || (loading && !isDebugMode);
+	const displayError = debugState === 'error' ? 'Failed to connect to Avalanche API' : (debugState === 'data' && !isDebugMode ? error : null);
+	
+	// Generate fake transactions when debug is ON and mode is DATA (memoized to avoid regenerating on every render)
+	const fakeTransactions = useMemo(() => {
+		if (isDebugMode && debugState === 'data') {
+			return generateFakeTransactions(10);
+		}
+		return [];
+	}, [isDebugMode, debugState]);
+	
+	const displayTransactions = debugState === 'empty' 
+		? [] 
+		: (debugState === 'data' 
+			? (isDebugMode ? fakeTransactions : transactions)
+			: []);
 
 	return (
 		<div className="backdrop-blur-[50px] bg-[rgba(81,81,81,0.24)] border border-[rgba(226,226,226,0.2)] rounded-[40px] w-full md:aspect-[1/1] relative">
 			<div className="flex flex-col gap-5 px-8 py-5 h-full">
-				<TransactionsHeader 
-					showDebugButtons={showDebug}
-					debugState={debugState}
-					onDebugStateChange={setDebugState}
-					countdown={countdown}
-				/>
+				<TransactionsHeader countdown={countdown} />
 				<div className="flex flex-col gap-[9px] flex-1 min-h-0">
 					<div className={`flex flex-col gap-[9px] flex-1 min-h-0 overflow-x-auto overflow-y-auto ${displayLoading || displayError || (!displayLoading && !displayError && displayTransactions.length === 0) ? 'justify-center items-center' : ''}`}>
 						{displayLoading || displayError || (!displayLoading && !displayError && displayTransactions.length === 0) ? (
@@ -475,10 +463,7 @@ export default function Transactions() {
 						) : (
 							<div className="min-w-max">
 								<div className="flex-shrink-0">
-									<TableHeader 
-										onDebugToggle={() => setShowDebug(!showDebug)}
-										showDebug={showDebug}
-									/>
+									<TableHeader />
 								</div>
 								<div className="flex flex-col gap-2" style={{ paddingTop: '80px', marginTop: '-80px' }}>
 									{displayTransactions.map((transaction) => (
